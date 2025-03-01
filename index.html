@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blender 渲染参数配置</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Blender 渲染参数配置</h1>
+        <form id="renderForm" class="form-grid">
+            <div>
+                <label for="renderType">渲染类型:</label>
+                <select id="renderType" name="renderType">
+                    <option value="image">图片</option>
+                    <option value="animation">动画</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="inputFile">输入文件 (.blend):</label>
+                <input type="text" id="inputFile" name="inputFile" placeholder="例如: scene.blend" required>
+            </div>
+
+            <div>
+                <label for="outputFile">输出文件路径:</label>
+                <input type="text" id="outputFile" name="outputFile" placeholder="例如: //output/render" required>
+            </div>
+
+            <div>
+                <label for="outputFormat">输出格式:</label>
+                <select id="outputFormat" name="outputFormat">
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+
+            <div>
+                <label for="startFrame">起始帧:</label>
+                <input type="number" id="startFrame" name="startFrame" value="1" min="1">
+            </div>
+
+            <div>
+                <label for="endFrame">结束帧:</label>
+                <input type="number" id="endFrame" name="endFrame" value="250" min="1">
+            </div>
+
+            <div>
+                <label for="threads">线程数:</label>
+                <input type="number" id="threads" name="threads" value="4" min="1">
+            </div>
+
+            <div>
+                <label for="engine">渲染引擎:</label>
+                <select id="engine" name="engine">
+                    <option value="CYCLES">Cycles</option>
+                    <option value="BLENDER_EEVEE">Eevee</option>
+                </select>
+            </div>
+
+            <button type="button" onclick="submitTask()">提交渲染任务</button>
+        </form>
+    </div>
+
+    <script>
+        const formatOptions = {
+            image: [
+                { value: 'PNG', text: 'PNG' },
+                { value: 'JPEG', text: 'JPEG' },
+                { value: 'TIFF', text: 'TIFF' },
+                { value: 'BMP', text: 'BMP' },
+                { value: 'TGA', text: 'TGA' },
+                { value: 'OPEN_EXR', text: 'OpenEXR' }
+            ],
+            animation: [
+                { value: 'PNG', text: 'PNG' },
+                { value: 'JPEG', text: 'JPEG' },
+                { value: 'TIFF', text: 'TIFF' },
+                { value: 'BMP', text: 'BMP' },
+                { value: 'TGA', text: 'TGA' },
+                { value: 'OPEN_EXR', text: 'OpenEXR' },
+                { value: 'AVIJPEG', text: 'AVI (JPEG)' },
+                { value: 'FFMPEG', text: 'MP4 (FFMPEG)' },
+                { value: 'AVI_RAW', text: 'AVI (Raw)' },
+                { value: 'QUICKTIME', text: 'QuickTime' },
+                { value: 'H264', text: 'H.264' }
+            ]
+        };
+
+        function updateOutputFormats() {
+            const renderType = document.getElementById('renderType').value;
+            const outputFormat = document.getElementById('outputFormat');
+            outputFormat.innerHTML = '';
+
+            formatOptions[renderType].forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                outputFormat.appendChild(optionElement);
+            });
+        }
+
+        document.getElementById('renderType').addEventListener('change', updateOutputFormats);
+
+        async function submitTask() {
+            try {
+                const taskData = {
+                    renderType: document.getElementById('renderType').value,
+                    inputFile: document.getElementById('inputFile').value,
+                    outputFile: document.getElementById('outputFile').value,
+                    outputFormat: document.getElementById('outputFormat').value,
+                    startFrame: parseInt(document.getElementById('startFrame').value),
+                    endFrame: parseInt(document.getElementById('endFrame').value),
+                    threads: parseInt(document.getElementById('threads').value),
+                    engine: document.getElementById('engine').value
+                };
+
+                const response = await fetch('/task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(taskData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                alert(`✅ 任务已提交\n任务ID: ${result.taskId}\n状态: ${result.status}`);
+            } catch (error) {
+                alert(`❌ 提交失败: ${error.message}`);
+                console.error('Error:', error);
+            }
+        }
+
+        // Initialize formats on page load
+        updateOutputFormats();
+    </script>
+</body>
+</html>
