@@ -24,7 +24,8 @@ RUN wget https://download.blender.org/release/Blender3.6/blender-3.6.2-linux-x64
     rm blender-3.6.2-linux-x64.tar.xz
 
 # 安装Python依赖
-RUN pip3 install fastapi uvicorn pydantic bpy
+COPY requirements.txt .
+RUN pip3 install requirements.txt
 
 # 复制应用文件
 COPY index.html .
