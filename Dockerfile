@@ -25,7 +25,7 @@ RUN wget https://download.blender.org/release/Blender3.6/blender-3.6.2-linux-x64
 
 # 安装Python依赖
 COPY requirements.txt .
-RUN pip3 install requirements.txt
+RUN pip3 install -r requirements.txt
 
 # 复制应用文件
 COPY index.html .
