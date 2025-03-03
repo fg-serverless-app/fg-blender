@@ -55,6 +55,11 @@ async def submit_task(task: TaskRequest):
                 bpy.context.scene.render.ffmpeg.constant_rate_factor = 'MEDIUM'
                 bpy.context.scene.render.ffmpeg.video_bitrate = 15000
                 bpy.context.scene.render.ffmpeg.gopsize = 12
+            elif container_format == "DV":
+                # 设置DV格式参数
+                bpy.context.scene.render.resolution_x = 720  # DV要求宽度必须720
+                bpy.context.scene.render.resolution_y = 576   # PAL标准高度
+                bpy.context.scene.render.fps = 25             # PAL标准帧率
         
         # 启用GPU渲染
         bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
