@@ -45,7 +45,16 @@ async def submit_task(task: TaskRequest):
         bpy.context.scene.render.filepath = task.outputFile
         bpy.context.scene.render.image_settings.file_format = task.outputFormat
         if task.outputFormat == "FFMPEG":
-            bpy.context.scene.render.ffmpeg.format = "MP4" if task.containerFormat == "" else task.containerFormat
+            container_format = "MP4" if task.containerFormat == "" else task.containerFormat
+            bpy.context.scene.render.ffmpeg.format = container_format
+            # WEBM格式特殊配置
+            if container_format == "WEBM":
+                # 设置WEBM格式参数
+                bpy.context.scene.render.ffmpeg.codec = 'WEBM'
+                bpy.context.scene.render.ffmpeg.ffmpeg_preset = 'GOOD'
+                bpy.context.scene.render.ffmpeg.constant_rate_factor = 'MEDIUM'
+                bpy.context.scene.render.ffmpeg.video_bitrate = 15000
+                bpy.context.scene.render.ffmpeg.gopsize = 12
         
         # 启用GPU渲染
         bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
