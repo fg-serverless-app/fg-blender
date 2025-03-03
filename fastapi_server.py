@@ -1,11 +1,19 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
+from typing import Optional
 import uuid
 import bpy
 import os
 
 app = FastAPI()
+
+from enum import Enum
+
+class RenderEngine(str, Enum):
+    CYCLES = "CYCLES"
+    BLENDER_EEVEE = "BLENDER_EEVEE"
+    BLENDER_WORKBENCH = "BLENDER_WORKBENCH"
 
 class TaskRequest(BaseModel):
     renderType: str
@@ -14,10 +22,10 @@ class TaskRequest(BaseModel):
     outputFormat: str
     startFrame: int
     endFrame: int
-    frameStep : int
+    frameStep: int
     threads: int
-    engine: str
-    containerFormat: str
+    engine: RenderEngine
+    containerFormat: Optional[str] = "MPEG4"
 
 @app.get("/", response_class=HTMLResponse)
 async def get_client():
@@ -45,7 +53,7 @@ async def submit_task(task: TaskRequest):
         bpy.context.scene.render.filepath = task.outputFile
         bpy.context.scene.render.image_settings.file_format = task.outputFormat
         if task.outputFormat == "FFMPEG":
-            container_format = "MP4" if task.containerFormat == "" else task.containerFormat
+            container_format = "MPEG4" if task.containerFormat == "" else task.containerFormat
             bpy.context.scene.render.ffmpeg.format = container_format
             # WEBM格式特殊配置
             if container_format == "WEBM":

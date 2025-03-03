@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     python3-pip \
     libgl1-mesa-glx \
+    libegl1-mesa \
     libglu1-mesa \
     libxi6 \
     libxrender1 \
@@ -17,15 +18,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 安装Blender
-RUN wget https://download.blender.org/release/Blender3.6/blender-3.6.2-linux-x64.tar.xz && \
-    tar -xf blender-3.6.2-linux-x64.tar.xz && \
-    mv blender-3.6.2-linux-x64 /opt/blender && \
+RUN wget https://download.blender.org/release/Blender4.3/blender-4.3.2-linux-x64.tar.xz && \
+    tar -xf blender-4.3.2-linux-x64.tar.xz && \
+    mv blender-4.3.2-linux-x64 /opt/blender && \
     ln -s /opt/blender/blender /usr/local/bin/blender && \
-    rm blender-3.6.2-linux-x64.tar.xz
+    rm blender-4.3.2-linux-x64.tar.xz
 
 # 安装Python依赖
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 # 复制应用文件
 COPY --chown=1003:1003 ./data ./data
