@@ -14,8 +14,10 @@ class TaskRequest(BaseModel):
     outputFormat: str
     startFrame: int
     endFrame: int
+    frameStep : int
     threads: int
     engine: str
+    containerFormat: str
 
 @app.get("/", response_class=HTMLResponse)
 async def get_client():
@@ -29,7 +31,7 @@ async def submit_task(task: TaskRequest):
         
         # 检查输入文件是否存在
         if not os.path.exists(task.inputFile):
-            raise HTTPException(status_code=400, detail="输入文件不存在")
+            raise HTTPException(status_code=400, detail="input file not exist")
             
         # 加载Blender文件
         bpy.ops.wm.open_mainfile(filepath=task.inputFile)
@@ -37,10 +39,13 @@ async def submit_task(task: TaskRequest):
         # 设置渲染参数
         bpy.context.scene.frame_start = task.startFrame
         bpy.context.scene.frame_end = task.endFrame
+        bpy.context.scene.frame_step = task.frameStep
         bpy.context.scene.render.threads = task.threads
         bpy.context.scene.render.engine = task.engine
         bpy.context.scene.render.filepath = task.outputFile
         bpy.context.scene.render.image_settings.file_format = task.outputFormat
+        if task.outputFormat == "FFMPEG":
+            bpy.context.scene.render.ffmpeg.format = "MP4" if task.containerFormat == "" else task.containerFormat
         
         # 启用GPU渲染
         bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'

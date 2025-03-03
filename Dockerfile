@@ -28,8 +28,12 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 # 复制应用文件
-COPY index.html .
-COPY fastapi_server.py .
+COPY --chown=1003:1003 ./data ./data
+COPY --chown=1003:1003 ./static ./static
+COPY --chown=1003:1003 index.html .
+COPY --chown=1003:1003 fastapi_server.py .
+
+# /data/startup.blend /data/output/mp4_
 
 # 暴露端口
 EXPOSE 8000

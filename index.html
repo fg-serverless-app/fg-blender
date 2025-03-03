@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blender 渲染参数配置</title>
+    <title>Blender Render Settings</title>
     <style>
         :root {
             --primary-color: #2563eb;
@@ -103,57 +103,79 @@
 </head>
 <body>
     <div class="container">
-        <h1>Blender 渲染参数配置</h1>
+        <h1>Blender Render Settings</h1>
         <form id="renderForm" class="form-grid">
             <div>
-                <label for="renderType">渲染类型:</label>
+                <label for="renderType">Render Type:</label>
                 <select id="renderType" name="renderType">
-                    <option value="image">图片</option>
-                    <option value="animation">动画</option>
+                    <option value="image">Image</option>
+                    <option value="animation">Animation</option>
                 </select>
             </div>
 
             <div>
-                <label for="inputFile">输入文件 (.blend):</label>
-                <input type="text" id="inputFile" name="inputFile" placeholder="例如: scene.blend" required>
+                <label for="inputFile">Input File (.blend):</label>
+                <input type="text" id="inputFile" name="inputFile" placeholder="e.g. scene.blend" required>
             </div>
 
             <div>
-                <label for="outputFile">输出文件路径:</label>
-                <input type="text" id="outputFile" name="outputFile" placeholder="例如: //output/render" required>
+                <label for="outputFile">Output File Path:</label>
+                <input type="text" id="outputFile" name="outputFile" placeholder="e.g. //output/render" required>
             </div>
 
             <div>
-                <label for="outputFormat">输出格式:</label>
+                <label for="outputFormat">Output Format:</label>
                 <select id="outputFormat" name="outputFormat">
                     <!-- Options will be populated by JavaScript -->
                 </select>
             </div>
 
+            <div id="containerFormatGroup" style="display: none;">
+                <label for="containerFormat">Container Format:</label>
+                <select id="containerFormat" name="containerFormat">
+                    <option value="MPEG4">MP4</option>
+                    <option value="MKV">MKV</option>
+                    <option value="AVI">AVI</option>
+                    <option value="OGG">OGG</option>
+                    <option value="WEBM">WEBM</option>
+                    <option value="FLASH">FLASH</option>
+                    <option value="DV">DV</option>
+                    <option value="QUICKTIME">QUICKTIME</option>
+                    <option value="MPEG2">MPEG2</option>
+                    <option value="MPEG1">MPEG1</option>
+                </select>
+            </div>
+
             <div>
-                <label for="startFrame">起始帧:</label>
+                <label for="startFrame">Start Frame:</label>
                 <input type="number" id="startFrame" name="startFrame" value="1" min="1">
             </div>
 
             <div>
-                <label for="endFrame">结束帧:</label>
-                <input type="number" id="endFrame" name="endFrame" value="250" min="1">
+                <label for="endFrame">End Frame:</label>
+                <input type="number" id="endFrame" name="endFrame" value="10" min="1">
             </div>
 
             <div>
-                <label for="threads">线程数:</label>
+                <label for="frameStep">Frame Step:</label>
+                <input type="number" id="frameStep" name="frameStep" value="1" min="1">
+            </div>
+
+            <div>
+                <label for="threads">Threads:</label>
                 <input type="number" id="threads" name="threads" value="4" min="1">
             </div>
 
             <div>
-                <label for="engine">渲染引擎:</label>
+                <label for="engine">Render Engine:</label>
                 <select id="engine" name="engine">
                     <option value="CYCLES">Cycles</option>
                     <option value="BLENDER_EEVEE">Eevee</option>
+                    <option value="BLENDER_WORKBENCH">Workbench</option>
                 </select>
             </div>
 
-            <button type="button" onclick="submitTask()">提交渲染任务</button>
+            <button type="button" onclick="submitTask()">Submit Render Task</button>
         </form>
     </div>
 
@@ -162,23 +184,23 @@
             image: [
                 { value: 'PNG', text: 'PNG' },
                 { value: 'JPEG', text: 'JPEG' },
+                { value: 'JPEG2000', text: 'JPEG2000' },
                 { value: 'TIFF', text: 'TIFF' },
                 { value: 'BMP', text: 'BMP' },
-                { value: 'TGA', text: 'TGA' },
-                { value: 'OPEN_EXR', text: 'OpenEXR' }
+                { value: 'TARGA', text: 'TARGA' },
+                { value: 'TARGA_RAW', text: 'TARGA (RAW)' },
+                { value: 'OPEN_EXR', text: 'OpenEXR' },
+                { value: 'OPEN_EXR_MULTILAYER', text: 'OPEN_EXR (MULTILAYER)' },
+                { value: 'CINEON', text: 'CINEON' },
+                { value: 'DPX', text: 'DPX' },
+                { value: 'HDR', text: 'HDR' },
+                { value: 'WEBP', text: 'WEBP' },
+                { value: 'IRIS', text: 'IRIS' }
             ],
             animation: [
-                { value: 'PNG', text: 'PNG' },
-                { value: 'JPEG', text: 'JPEG' },
-                { value: 'TIFF', text: 'TIFF' },
-                { value: 'BMP', text: 'BMP' },
-                { value: 'TGA', text: 'TGA' },
-                { value: 'OPEN_EXR', text: 'OpenEXR' },
-                { value: 'AVIJPEG', text: 'AVI (JPEG)' },
+                { value: 'AVI_JPEG', text: 'AVI (JPEG)' },
                 { value: 'FFMPEG', text: 'MP4 (FFMPEG)' },
-                { value: 'AVI_RAW', text: 'AVI (Raw)' },
-                { value: 'QUICKTIME', text: 'QuickTime' },
-                { value: 'H264', text: 'H.264' }
+                { value: 'AVI_RAW', text: 'AVI (Raw)' }
             ]
         };
 
@@ -197,6 +219,19 @@
 
         document.getElementById('renderType').addEventListener('change', updateOutputFormats);
 
+        // 新增容器格式显示控制
+        function updateContainerVisibility() {
+            const outputFormat = document.getElementById('outputFormat').value;
+            const containerGroup = document.getElementById('containerFormatGroup');
+            containerGroup.style.display = outputFormat === 'FFMPEG' ? 'block' : 'none';
+        }
+
+        document.getElementById('outputFormat').addEventListener('change', updateContainerVisibility);
+
+        // 初始化时更新格式和容器可见性
+        updateOutputFormats();
+        updateContainerVisibility();
+
         async function submitTask() {
             try {
                 const taskData = {
@@ -206,9 +241,14 @@
                     outputFormat: document.getElementById('outputFormat').value,
                     startFrame: parseInt(document.getElementById('startFrame').value),
                     endFrame: parseInt(document.getElementById('endFrame').value),
+                    frameStep: parseInt(document.getElementById('frameStep').value),
                     threads: parseInt(document.getElementById('threads').value),
                     engine: document.getElementById('engine').value
                 };
+
+                if (document.getElementById('outputFormat').value === 'FFMPEG') {
+                    taskData.containerFormat = document.getElementById('containerFormat').value;
+                }
 
                 const response = await fetch('/task', {
                     method: 'POST',
@@ -223,9 +263,9 @@
                 }
 
                 const result = await response.json();
-                alert(`✅ 任务已提交\n任务ID: ${result.taskId}\n状态: ${result.status}`);
+                alert(`✅ Task submitted successfully\nTask ID: ${result.taskId}\nStatus: ${result.status}`);
             } catch (error) {
-                alert(`❌ 提交失败: ${error.message}`);
+                alert(`❌ Submission failed: ${error.message}`);
                 console.error('Error:', error);
             }
         }
