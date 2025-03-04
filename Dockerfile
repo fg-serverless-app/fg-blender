@@ -30,11 +30,7 @@ RUN pip3 install -r requirements.txt -i https://mirrors.tuna.tsinghua.edu.cn/pyp
 
 # 复制应用文件
 COPY --chown=1003:1003 ./data ./data
-COPY --chown=1003:1003 ./static ./static
-COPY --chown=1003:1003 index.html .
 COPY --chown=1003:1003 fastapi_server.py .
-
-# /data/startup.blend /data/output/mp4_
 
 # 暴露端口
 EXPOSE 8000
