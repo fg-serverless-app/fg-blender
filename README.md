@@ -1,68 +1,57 @@
-# Blender API Project
+# Huawei Cloud FunctionGraph Blender Rendering API
 
-This project provides a Python API for interacting with Blender, allowing for automation of 3D modeling tasks and integration with other systems.
+A serverless Blender rendering solution built on Huawei Cloud FunctionGraph, feature:
+
+- Image rendering (e.g. PNG/JPEG)
+- Animation rendering (e.g. MP4/AVI)
+- GPU-accelerated rendering capabilities
 
 ## Project Structure
 
 ```
 .
-├── Dockerfile
-├── fastapi_server.py
-├── index.html
+├── Dockerfile                 # Container build configuration
+├── fastapi_server.py          # FastAPI main application
+├── requirements.txt           # Python dependencies
 ├── data/
-│   ├── startup.blend
-│   └── output/
-│       └── out_0001.png
-└── static/
-    └── favicon.ico
+│   ├── startup.blend          # Base Blender scene template
+│   └── output/                # Rendering output directory
+└── README.md                  # Project documentation
 ```
 
-## Installation
-
-1. Clone this repository
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
 ## Docker Image Build
 
-1. Build the Docker image:
-   ```bash
-   docker build -t blender-api .
-   ```
-
-2. Run the container:
-   ```bash
-   docker run -d --apus all -p 8000:8000 blender-api
-   ```
-
-3. Access the API:
-   ```
-   http://localhost:8000
-   ```
-
-## Usage
-
-Run the FastAPI server:
 ```bash
-uvicorn fastapi_server:app --reload
+# Build image (requires Docker)
+docker build -t swr.[region].myhuaweicloud.com/[organization]/blender-api:[version] .
+
+# Push to SWR registry
+docker push swr.[region].myhuaweicloud.com/[organization]/blender-api:[version]
 ```
 
-The API will be available at `http://localhost:8000`
+## Deployment to Huawei Cloud FunctionGraph
 
-## Examples
+1. Container Image Preparation
+   - Build and push image to SWR registry using above commands
 
-Example API call:
-```python
-import requests
+2. Function Creation
+   - Runtime: Container Image
+   - Function Type: Event Function
+   - Instance Configuration:
+     - GPU Type: NVIDIA-L2/NVIDIA-T4
+     - GPU Memory: 24GB/16GB
+     - Memory: ≥8GB
+   - Environment Variables:
+     ```env
+     # Required parameters
+     ENDPOINT = "obs.[region].myhuaweicloud.com"  # Refer to https://console.huaweicloud.com/apiexplorer/#/endpoint/OBS
+     ```
 
-response = requests.post('http://localhost:8000/render', json={
-    'scene': 'data/startup.blend',
-    'output': 'data/output/out_0001.png'
-})
-print(response.json())
-```
+## Client Usage
 
-## License
+Use with [fg-blender-client](https://github.com/fg-serverless-app/fg-blender-client)
 
-MIT
+## Important Notes
+1. Set function timeout to 900 seconds (15 minutes) or more
+2. Ensure OBS bucket and FunctionGraph are in same region
+3. Configure delegated permissions (OBS OperateAccess) for first-time setup
