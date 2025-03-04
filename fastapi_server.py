@@ -1,8 +1,8 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from obs import ObsClient, GetObjectHeader, PutObjectHeader
 from pydantic import BaseModel
 from typing import Optional
-import uuid
 import bpy
 import os
 
@@ -16,8 +16,10 @@ class RenderEngine(str, Enum):
     BLENDER_WORKBENCH = "BLENDER_WORKBENCH"
 
 class TaskRequest(BaseModel):
+    bucketName: str
     renderType: str
     inputFile: str
+    outputDir: str
     outputFile: str
     outputFormat: str
     startFrame: int
@@ -27,30 +29,51 @@ class TaskRequest(BaseModel):
     engine: RenderEngine
     containerFormat: Optional[str] = "MPEG4"
 
-@app.get("/", response_class=HTMLResponse)
+@app.post("/init")
 async def get_client():
-    with open("index.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return JSONResponse({
+        'result_code':200,
+        'result_desc':"Success",
+        'data':"handler for init"
+    })
 
-@app.post("/task")
-async def submit_task(task: TaskRequest):
+@app.post("/invoke")
+async def submit_task(
+        task: TaskRequest,
+        request_id: str = Header(None, alias="x-cff-request-id"),
+        access_key_id: str = Header(None, alias="x-cff-access-key"),
+        secret_access_key: str = Header(None, alias="x-cff-secret-key")
+):
     try:
-        task_id = str(uuid.uuid4())
-        
+        task_id = request_id
+
+        savePath = os.path.join("/tmp", task.inputFile)
+        outputFile = os.path.join("/tmp", task_id, task.outputFile)
+
+        obsClient = ObsClient(
+            access_key_id=access_key_id,
+            secret_access_key=secret_access_key,
+            server=os.getenv('ENDPOINT'),
+        )
+        headers = GetObjectHeader()
+        resp = obsClient.getObject(task.bucketName, task.inputFile, savePath, headers)
+        if resp.status >= 300:
+            app.logger.error(resp.body)
+            raise Exception('get object failed')
         # 检查输入文件是否存在
-        if not os.path.exists(task.inputFile):
+        if not os.path.exists(savePath):
             raise HTTPException(status_code=400, detail="input file not exist")
             
         # 加载Blender文件
-        bpy.ops.wm.open_mainfile(filepath=task.inputFile)
-        
+        bpy.ops.wm.open_mainfile(filepath=savePath)
+
         # 设置渲染参数
         bpy.context.scene.frame_start = task.startFrame
         bpy.context.scene.frame_end = task.endFrame
         bpy.context.scene.frame_step = task.frameStep
         bpy.context.scene.render.threads = task.threads
         bpy.context.scene.render.engine = task.engine
-        bpy.context.scene.render.filepath = task.outputFile
+        bpy.context.scene.render.filepath = outputFile
         bpy.context.scene.render.image_settings.file_format = task.outputFormat
         if task.outputFormat == "FFMPEG":
             container_format = "MPEG4" if task.containerFormat == "" else task.containerFormat
@@ -68,7 +91,7 @@ async def submit_task(task: TaskRequest):
                 bpy.context.scene.render.resolution_x = 720  # DV要求宽度必须720
                 bpy.context.scene.render.resolution_y = 576   # PAL标准高度
                 bpy.context.scene.render.fps = 25             # PAL标准帧率
-        
+
         # 启用GPU渲染
         bpy.context.preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
         bpy.context.scene.cycles.device = 'GPU'
@@ -78,6 +101,16 @@ async def submit_task(task: TaskRequest):
 
         # 执行渲染
         bpy.ops.render.render(animation=True)
+
+        os.remove(savePath)
+        for filename in os.listdir(os.path.join("/tmp", task_id)):
+            filepath = os.path.join("/tmp", task_id, filename)
+            headers = PutObjectHeader()
+            headers.contentType = 'text/plain'
+            resp = obsClient.putFile(task.bucketName, os.path.join(task.outputDir, task_id, filename), filepath, headers=headers)
+            os.remove(filepath)
+            if resp.status >= 300:
+                raise Exception('put object failed, ' + resp.body)
         
         return JSONResponse({
             "taskId": task_id,
