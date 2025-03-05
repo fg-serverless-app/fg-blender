@@ -119,8 +119,8 @@ async def submit_task(
             "outputFile": task.outputFile
         })
     except Exception as e:
-        print(str(e))
-        raise HTTPException(status_code=500, detail=str(e))
+        status_code = e.status_code if isinstance(e, HTTPException) else 500
+        raise HTTPException(status_code=status_code, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
