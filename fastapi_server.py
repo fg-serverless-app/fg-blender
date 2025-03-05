@@ -58,8 +58,8 @@ async def submit_task(
         headers = GetObjectHeader()
         resp = obsClient.getObject(task.bucketName, task.inputFile, savePath, headers)
         if resp.status >= 300:
-            app.logger.error(resp.body)
-            raise Exception('get object failed')
+            print(resp.body)
+            raise Exception(f'get object failed, ' + resp.body)
         # 检查输入文件是否存在
         if not os.path.exists(savePath):
             raise HTTPException(status_code=400, detail="input file not exist")
@@ -118,9 +118,7 @@ async def submit_task(
             "outputFile": task.outputFile
         })
     except Exception as e:
-        import logging
-        logging.basicConfig(filename='error.log', level=logging.ERROR)
-        logging.error(f"Error occurred in submit_task: {str(e)}", exc_info=True)
+        print(str(e))
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
