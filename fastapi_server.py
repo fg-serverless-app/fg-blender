@@ -59,7 +59,7 @@ async def submit_task(
         resp = obsClient.getObject(task.bucketName, task.inputFile, savePath, headers)
         if resp.status >= 300:
             print(resp.body)
-            raise Exception(f'get object failed, code: {resp.status}')
+            raise HTTPException(status_code=resp.status, detail='get object failed')
         # 检查输入文件是否存在
         if not os.path.exists(savePath):
             raise HTTPException(status_code=400, detail="input file not exist")
@@ -111,7 +111,7 @@ async def submit_task(
             os.remove(filepath)
             if resp.status >= 300:
                 print(resp.body)
-                raise Exception(f'put object failed, code: {resp.status}')
+                raise HTTPException(status_code=resp.status, detail='put object failed')
         
         return JSONResponse({
             "taskId": task_id,
