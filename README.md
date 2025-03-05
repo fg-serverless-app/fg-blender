@@ -37,15 +37,24 @@ docker push swr.[region].myhuaweicloud.com/[organization]/blender-api:[version]
 2. Function Creation
    - Runtime: Container Image
    - Function Type: Event Function
+   ![image](https://github.com/user-attachments/assets/58135356-c4c1-4181-a1f0-d9e80d1d9d8a)
+
    - Instance Configuration:
      - GPU Type: NVIDIA-L2/NVIDIA-T4
      - GPU Memory: 24GB/16GB
      - Memory: ≥8GB
+     - Execution Timeout: >= 900
+     ![image](https://github.com/user-attachments/assets/703a3b1a-5a34-41f3-b464-a249bc7e7a41)
+     - Enable `Include Keys`
+     ![image](https://github.com/user-attachments/assets/31fdcbb7-a1c8-408b-82fa-47d3b6ad8892)
+
    - Environment Variables:
      ```env
      # Required parameters
      ENDPOINT = "obs.[region].myhuaweicloud.com"  # Refer to https://console.huaweicloud.com/apiexplorer/#/endpoint/OBS
      ```
+     ![image](https://github.com/user-attachments/assets/0a353548-7a1e-45cd-90c1-f8e64ad1103e)
+
 
 ## Client Usage
 
